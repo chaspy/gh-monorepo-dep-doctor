@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
@@ -75,24 +76,47 @@ func processResult(filePath, directDependent, result string) {
 	}
 }
 
-func checkDependencies(directDependent, allDependent, packageManager string) error {
+func getIgnoreString() (string, error) {
 	ignoredFiles, err := os.ReadFile(".dep-doctor-ignore")
 	if err != nil {
-		return fmt.Errorf("Failed to open .dep-doctor-ignore file: %w", err)
+		return "", fmt.Errorf("Failed to open .dep-doctor-ignore file: %w", err)
 	}
+	return strings.ReplaceAll(string(ignoredFiles), "\n", " "), nil
+}
 
-	ignoredFilesStr := strings.ReplaceAll(string(ignoredFiles), "\n", " ")
+func checkDependencies(directDependent, allDependent, packageManager string) error {
+	ignoredFilesStr, err := getIgnoreString()
+	if err != nil {
+		return fmt.Errorf("Failed to get ignore string: %w", err)
+	}
 
 	paths, err := filepath.Glob("**/" + allDependent)
 	if err != nil {
 		return fmt.Errorf("Failed to find allDependent files: %w", err)
 	}
+
+	errs := make(chan error, len(paths))
+	var wg sync.WaitGroup
+
 	for _, p := range paths {
-		err := checkDependencyFile(p, packageManager, directDependent, ignoredFilesStr)
+		wg.Add(1)
+		go func(path string) {
+			defer wg.Done()
+			if err := checkDependencyFile(path, packageManager, directDependent, ignoredFilesStr); err != nil {
+				errs <- fmt.Errorf("Failed to check dependency file: %w", err)
+			}
+		}(p)
+	}
+
+	wg.Wait()
+	close(errs)
+
+	for err := range errs {
 		if err != nil {
-			return fmt.Errorf("Failed to check dependency file: %w", err)
+			return err
 		}
 	}
+
 	return nil
 }
 
