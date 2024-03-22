@@ -15,38 +15,27 @@ import (
 
 func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
 	cmd := exec.Command("dep-doctor", "diagnose", "--file", filePath, "--package", packageManager, "--ignores", ignoredFiles)
-	grepCmd := exec.Command("grep", "-e", "not-maintained", "-e", "archive")
 
-	pipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf("Failed to create stdout pipe: %w", err)
-	}
-
-	defer pipe.Close()
-
-	grepCmd.Stdin = pipe
 	var result bytes.Buffer
-	grepCmd.Stdout = &result
+	cmd.Stdout = &result
 
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("Failed to start dep-doctor command: %w", err)
 	}
 
-	err = grepCmd.Start()
-	if err != nil {
-		return fmt.Errorf("Failed to start grep command: %w", err)
-	}
-
-	// dep-doctor command returns non-zero status code when there are warning or error
-	// but we can ignore it
+	// dep-doctor command returns non-zero status code,
+	// so we can ignore an error handling
 	cmd.Wait()
 
-	// Also grep command returns non-zero status code when there are no matching words
-	grepCmd.Wait()
-
-	if result.Len() > 0 {
-		processResult(filePath, directDependent, result.String())
+	scanner := bufio.NewScanner(&result)
+	for scanner.Scan() {
+		line := scanner.Text()
+		// grep
+		if strings.Contains(line, "not-maintained") || strings.Contains(line, "archive") {
+			//fmt.Println(line)
+			processResult(filePath, directDependent, line)
+		}
 	}
 
 	return nil
@@ -70,6 +59,8 @@ func processResult(filePath, directDependent, result string) {
 			fmt.Println("Error reading file:", err)
 			continue
 		}
+
+		// fmt.Printf("%s/%s,%s,%s,%s\n", dir, directDependent, packageName, maintenanceStatus, url)
 		// Checks for files containing directly dependent libraries and standard outputs if a match is found
 		if strings.Contains(string(directDependentContent), "'"+packageName+"'") {
 			fmt.Printf("%s/%s,%s,%s,%s\n", dir, directDependent, packageName, maintenanceStatus, url)
