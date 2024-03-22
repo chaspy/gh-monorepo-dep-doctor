@@ -81,7 +81,10 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 
 	ignoredFilesStr := strings.ReplaceAll(string(ignoredFiles), "\n", " ")
 
-	paths, _ := filepath.Glob("**/" + allDependent)
+	paths, err := filepath.Glob("**/" + allDependent)
+	if err != nil {
+		return fmt.Errorf("Failed to find allDependent files: %w", err)
+	}
 	for _, p := range paths {
 		err := checkDependencyFile(p, packageManager, directDependent, ignoredFilesStr)
 		if err != nil {
