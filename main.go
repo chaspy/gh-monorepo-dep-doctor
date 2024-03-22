@@ -34,15 +34,12 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 		return fmt.Errorf("Failed to start grepCmd: %w", err)
 	}
 
-	err = cmd.Wait()
-	if err != nil {
-		return fmt.Errorf("Failed to wait for cmd: %w", err)
-	}
+	// dep-doctor command returns non-zero status code when there are warning or error
+	// but we can ignore it
+	cmd.Wait()
 
-	err = grepCmd.Wait()
-	if err != nil {
-		return fmt.Errorf("Failed to wait for grepCmd: %w", err)
-	}
+	// Also grep command returns non-zero status code when there are no matching words
+	grepCmd.Wait()
 
 	if result.Len() > 0 {
 		processResult(filePath, directDependent, result.String())
