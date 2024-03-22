@@ -67,6 +67,7 @@ func processResult(filePath, directDependent, result string) {
 			fmt.Println("Error reading file:", err)
 			continue
 		}
+		// Checks for files containing directly dependent libraries and standard outputs if a match is found
 		if strings.Contains(string(directDependentContent), "'"+packageName+"'") {
 			fmt.Printf("%s/%s,%s,%s,%s\n", dir, directDependent, packageName, maintenanceStatus, parts[3])
 		}
