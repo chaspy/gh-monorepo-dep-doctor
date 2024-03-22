@@ -28,12 +28,12 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 
 	err = cmd.Start()
 	if err != nil {
-		return fmt.Errorf("Failed to start cmd: %w", err)
+		return fmt.Errorf("Failed to start dep-doctor command: %w", err)
 	}
 
 	err = grepCmd.Start()
 	if err != nil {
-		return fmt.Errorf("Failed to start grepCmd: %w", err)
+		return fmt.Errorf("Failed to start grep command: %w", err)
 	}
 
 	// dep-doctor command returns non-zero status code when there are warning or error
