@@ -20,6 +20,8 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 		return fmt.Errorf("Failed to create stdout pipe: %w", err)
 	}
 
+	defer pipe.Close()
+
 	grepCmd.Stdin = pipe
 	var result bytes.Buffer
 	grepCmd.Stdout = &result
