@@ -59,7 +59,7 @@ func processResult(filePath, directDependent, result string) {
 			continue
 		}
 		packageName := parts[1]
-		maintenanceStatus := strings.Trim(parts[2], "():")
+		maintenanceStatus := strings.Trim(parts[2], "():") // (archived): -> archived
 
 		dir := filepath.Dir(filePath)
 		directDependentContent, err := os.ReadFile(filepath.Join(dir, directDependent))
