@@ -95,12 +95,6 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 	return nil
 }
 
-// nolint:forbidigo
-func usage() {
-	fmt.Println("Usage: gh monorepo-dep-doctor --flag value (--flag value)")
-	fmt.Println("example: gh monorepo-dep-doctor --flag value (--flag value) // Description")
-}
-
 func run() error {
 	err := checkDependencies("Gemfile", "Gemfile.lock", "bundler")
 	if err != nil {
