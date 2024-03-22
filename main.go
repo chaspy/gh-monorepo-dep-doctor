@@ -60,6 +60,7 @@ func processResult(filePath, directDependent, result string) {
 		}
 		packageName := parts[1]
 		maintenanceStatus := strings.Trim(parts[2], "():") // (archived): -> archived
+		url := parts[3]
 
 		dir := filepath.Dir(filePath)
 		directDependentContent, err := os.ReadFile(filepath.Join(dir, directDependent))
@@ -69,7 +70,7 @@ func processResult(filePath, directDependent, result string) {
 		}
 		// Checks for files containing directly dependent libraries and standard outputs if a match is found
 		if strings.Contains(string(directDependentContent), "'"+packageName+"'") {
-			fmt.Printf("%s/%s,%s,%s,%s\n", dir, directDependent, packageName, maintenanceStatus, parts[3])
+			fmt.Printf("%s/%s,%s,%s,%s\n", dir, directDependent, packageName, maintenanceStatus, url)
 		}
 	}
 }
