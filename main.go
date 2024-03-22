@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -48,7 +48,7 @@ func processResult(filePath, directDependent, result string) {
 		maintenanceStatus := strings.Trim(parts[2], "():")
 
 		dir := filepath.Dir(filePath)
-		directDependentContent, err := ioutil.ReadFile(filepath.Join(dir, directDependent))
+		directDependentContent, err := os.ReadFile(filepath.Join(dir, directDependent))
 		if err != nil {
 			fmt.Println("Error reading file:", err)
 			continue
@@ -60,7 +60,7 @@ func processResult(filePath, directDependent, result string) {
 }
 
 func checkDependencies(directDependent, allDependent, packageManager string) error {
-	ignoredFiles, err := ioutil.ReadFile(".dep-doctor-ignore")
+	ignoredFiles, err := os.ReadFile(".dep-doctor-ignore")
 	if err != nil {
 		return fmt.Errorf("Failed to open .dep-doctor-ignore file: %v", err)
 	}
