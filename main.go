@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -95,13 +96,22 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 		return fmt.Errorf("Failed to find allDependent files: %w", err)
 	}
 
+	maxConcurrencyStr := os.Getenv("MAX_CONCURRENCY")
+	maxConcurrency, err := strconv.Atoi(maxConcurrencyStr)
+	if err != nil || maxConcurrency <= 0 {
+		maxConcurrency = 50 // Default to 50 if not set or set to a non-positive value
+	}
+
 	errs := make(chan error, len(paths))
 	var wg sync.WaitGroup
+	sem := make(chan struct{}, maxConcurrency) // Create a semaphore to limit concurrency
 
 	for _, p := range paths {
 		wg.Add(1)
 		go func(path string) {
+			sem <- struct{}{} // Acquire a token
 			defer wg.Done()
+			defer func() { <-sem }() // Release the token
 			if err := checkDependencyFile(path, packageManager, directDependent, ignoredFilesStr); err != nil {
 				errs <- fmt.Errorf("Failed to check dependency file: %w", err)
 			}
@@ -119,7 +129,6 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 
 	return nil
 }
-
 func run() error {
 	err := checkDependencies("Gemfile", "Gemfile.lock", "bundler")
 	if err != nil {

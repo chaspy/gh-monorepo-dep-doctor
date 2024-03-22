@@ -12,6 +12,10 @@ gh extension to execute [dep-doctor](https://github.com/kyoshidajp/dep-doctor) i
 
 - [dep-doctor](https://github.com/kyoshidajp/dep-doctor) v1.2.1 or later
 
+## Support Language
+
+- Ruby, bundle
+
 ## Installation
 
 ```bash
@@ -42,4 +46,6 @@ A CSV file of the form `depenedency file, library, status, url` will be output
 
 ## Environment Variables
 
-TODO
+|Name|Description|
+|---|---|
+| `MAX_CONCURRENCY` | The maximum number of concurrentcy. Defaults to 50.|
