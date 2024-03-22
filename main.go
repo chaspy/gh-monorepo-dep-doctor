@@ -17,7 +17,7 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 
 	pipe, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("Failed to create stdout pipe: %v", err)
+		return fmt.Errorf("Failed to create stdout pipe: %w", err)
 	}
 
 	grepCmd.Stdin = pipe
@@ -61,7 +61,7 @@ func processResult(filePath, directDependent, result string) {
 func checkDependencies(directDependent, allDependent, packageManager string) error {
 	ignoredFiles, err := os.ReadFile(".dep-doctor-ignore")
 	if err != nil {
-		return fmt.Errorf("Failed to open .dep-doctor-ignore file: %v", err)
+		return fmt.Errorf("Failed to open .dep-doctor-ignore file: %w", err)
 	}
 
 	ignoredFilesStr := strings.ReplaceAll(string(ignoredFiles), "\n", " ")
@@ -70,7 +70,7 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 	for _, p := range paths {
 		err := checkDependencyFile(p, packageManager, directDependent, ignoredFilesStr)
 		if err != nil {
-			return fmt.Errorf("Failed to check dependency file: %v", err)
+			return fmt.Errorf("Failed to check dependency file: %w", err)
 		}
 	}
 	return nil
@@ -85,7 +85,7 @@ func usage() {
 func run() error {
 	err := checkDependencies("Gemfile", "Gemfile.lock", "bundler")
 	if err != nil {
-		return fmt.Errorf("Failed to check dependencies: %v", err)
+		return fmt.Errorf("Failed to check dependencies: %w", err)
 	}
 	// Add more checkDependencies calls as needed
 	return nil
