@@ -11,10 +11,15 @@ import (
 	"strings"
 )
 
-func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) {
+func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
 	cmd := exec.Command("dep-doctor", "diagnose", "--file", filePath, "--package", packageManager, "--ignores", ignoredFiles)
 	grepCmd := exec.Command("grep", "-e", "not-maintained", "-e", "archive")
-	pipe, _ := cmd.StdoutPipe()
+
+	pipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("Failed to create stdout pipe: %v", err)
+	}
+
 	grepCmd.Stdin = pipe
 	var result bytes.Buffer
 	grepCmd.Stdout = &result
@@ -26,6 +31,8 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	if result.Len() > 0 {
 		processResult(filePath, directDependent, result.String())
 	}
+
+	return nil
 }
 
 func processResult(filePath, directDependent, result string) {
@@ -52,14 +59,22 @@ func processResult(filePath, directDependent, result string) {
 	}
 }
 
-func checkDependencies(directDependent, allDependent, packageManager string) {
-	ignoredFiles, _ := ioutil.ReadFile(".dep-doctor-ignore")
+func checkDependencies(directDependent, allDependent, packageManager string) error {
+	ignoredFiles, err := ioutil.ReadFile(".dep-doctor-ignore")
+	if err != nil {
+		return fmt.Errorf("Failed to create stdout pipe: %v", err)
+	}
+
 	ignoredFilesStr := strings.ReplaceAll(string(ignoredFiles), "\n", " ")
 
 	paths, _ := filepath.Glob("**/" + allDependent)
 	for _, p := range paths {
-		checkDependencyFile(p, packageManager, directDependent, ignoredFilesStr)
+		err := checkDependencyFile(p, packageManager, directDependent, ignoredFilesStr)
+		if err != nil {
+			return fmt.Errorf("Failed to check dependency file: %v", err)
+		}
 	}
+	return nil
 }
 
 // nolint:forbidigo
@@ -69,7 +84,10 @@ func usage() {
 }
 
 func run() error {
-	checkDependencies("Gemfile", "Gemfile.lock", "bundler")
+	err := checkDependencies("Gemfile", "Gemfile.lock", "bundler")
+	if err != nil {
+		return fmt.Errorf("Failed to check dependencies: %v", err)
+	}
 	// Add more checkDependencies calls as needed
 	return nil
 }
