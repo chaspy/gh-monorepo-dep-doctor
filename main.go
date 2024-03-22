@@ -62,7 +62,7 @@ func processResult(filePath, directDependent, result string) {
 func checkDependencies(directDependent, allDependent, packageManager string) error {
 	ignoredFiles, err := ioutil.ReadFile(".dep-doctor-ignore")
 	if err != nil {
-		return fmt.Errorf("Failed to create stdout pipe: %v", err)
+		return fmt.Errorf("Failed to open .dep-doctor-ignore file: %v", err)
 	}
 
 	ignoredFilesStr := strings.ReplaceAll(string(ignoredFiles), "\n", " ")
