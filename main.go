@@ -23,10 +23,26 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	grepCmd.Stdin = pipe
 	var result bytes.Buffer
 	grepCmd.Stdout = &result
-	cmd.Start()
-	grepCmd.Start()
-	cmd.Wait()
-	grepCmd.Wait()
+
+	err = cmd.Start()
+	if err != nil {
+		return fmt.Errorf("Failed to start cmd: %w", err)
+	}
+
+	err = grepCmd.Start()
+	if err != nil {
+		return fmt.Errorf("Failed to start grepCmd: %w", err)
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		return fmt.Errorf("Failed to wait for cmd: %w", err)
+	}
+
+	err = grepCmd.Wait()
+	if err != nil {
+		return fmt.Errorf("Failed to wait for grepCmd: %w", err)
+	}
 
 	if result.Len() > 0 {
 		processResult(filePath, directDependent, result.String())
