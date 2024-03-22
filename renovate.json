@@ -1,0 +1,42 @@
+{
+  "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "matchPackagePatterns": [".*"],
+      "matchUpdateTypes": ["major"],
+      "postUpdateOptions": ["gomodTidy"]
+    },
+    {
+      "groupName": "go",
+      "matchManagers": ["gomod"],
+      "matchPackagePatterns": [".*"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+      "postUpdateOptions": ["gomodTidy"]
+    },
+    {
+      "groupName": "go",
+      "matchPackageNames": ["golang-version"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/test\\.yml$"],
+      "matchStrings": ["\\sversion: (?<currentValue>.*?)\n"],
+      "depNameTemplate": "github.com/golangci/golangci-lint",
+      "datasourceTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/.*\\.yml$"],
+      "matchStrings": ["\\sgo[_-]version: (?<currentValue>.*?)\n"],
+      "depNameTemplate": "golang-version",
+      "datasourceTemplate": "golang-version",
+      "versioningTemplate": "semver-coerced"
+    }
+  ]
+}
