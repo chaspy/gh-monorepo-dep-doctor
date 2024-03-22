@@ -43,7 +43,6 @@ func processResult(filePath, directDependent, result string) {
 		if len(parts) < 4 {
 			continue
 		}
-		//		warnLevel := strings.Trim(parts[0], "[]")
 		packageName := parts[1]
 		maintenanceStatus := strings.Trim(parts[2], "():")
 
