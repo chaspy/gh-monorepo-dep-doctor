@@ -7,8 +7,8 @@ import (
 
 // nolint:forbidigo
 func usage() {
-	fmt.Println("Usage: gh extension-template --flag value (--flag value)")
-	fmt.Println("example: gh extension-template --flag value (--flag value) // Description")
+	fmt.Println("Usage: gh monorepo-dep-doctor --flag value (--flag value)")
+	fmt.Println("example: gh monorepo-dep-doctor --flag value (--flag value) // Description")
 }
 
 func run() error {

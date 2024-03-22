@@ -1,15 +1,15 @@
-# gh-extension-template
+# gh-monorepo-dep-doctor
 
 ## Installation
 
 ```bash
-gh extension install chaspy/gh-extension-template
+gh extension install chaspy/gh-monorepo-dep-doctor
 ```
 
 To upgrade,
 
-```
-gh extension upgrade chaspy/gh-extension-template
+```bash
+gh extension upgrade chaspy/gh-monorepo-dep-doctor
 ```
 
 ## Usage
