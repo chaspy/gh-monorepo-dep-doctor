@@ -82,9 +82,9 @@ func processResult(filePath, directDependent, result string) {
 }
 
 func getIgnoreString() (string, error) {
-	ignoredFiles, err := os.ReadFile(".dep-doctor-ignore")
+	ignoredFiles, err := os.ReadFile(".gh-monorepo-dep-doctor-ignore")
 	if err != nil {
-		return "", fmt.Errorf("Failed to open .dep-doctor-ignore file: %w", err)
+		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
 	}
 	return strings.ReplaceAll(string(ignoredFiles), "\n", " "), nil
 }

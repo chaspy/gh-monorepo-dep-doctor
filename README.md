@@ -44,6 +44,20 @@ back-office/Gemfile,sass,archived,https://github.com/sass/ruby-sass
 
 A CSV file of the form `depenedency file, library, status, url` will be output
 
+## Ignore file
+
+To ignore a specific library, you can create a `.gh-monorepo-dep-doctor-ignore` file in the root of the repository.
+
+The format of the file is as follows.
+
+```
+library-name
+another-library-name
+```
+
+> [!CAUTION]
+> # and other comment notations are not supported. It will be supported in the future.
+
 ## Environment Variables
 
 |Name|Description|
