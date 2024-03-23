@@ -59,7 +59,7 @@ another-library-name
 ```
 
 > [!CAUTION]
-> # and other comment notations are not supported. It will be supported in the future.
+> `#` and other comment notations are not supported. It will be supported in the future.
 
 ## Environment Variables
 
