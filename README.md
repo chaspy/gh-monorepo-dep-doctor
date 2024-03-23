@@ -1,6 +1,6 @@
 # gh-monorepo-dep-doctor
 
-gh extension to execute [dep-doctor](https://github.com/kyoshidajp/dep-doctor) in monorepo
+gh extension to execute [dep-doctor](https://github.com/kyoshidajp/dep-doctor) in monorepo for direct dipendencies.
 
 ## Motivation
 
@@ -43,6 +43,9 @@ back-office/Gemfile,sass,archived,https://github.com/sass/ruby-sass
 ```
 
 A CSV file of the form `depenedency file, library, status, url` will be output
+
+> [!NOTE]
+> As it is executed asynchronously, the order of output is not guaranteed
 
 ## Ignore file
 
