@@ -24,17 +24,30 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 		return fmt.Errorf("Failed to start dep-doctor command: %w", err)
 	}
 
-	// dep-doctor command returns non-zero status code,
-	// so we can ignore an error handling
+	// dep-doctor returns 1 as exit code when an error occurs
+	// https://github.com/kyoshidajp/dep-doctor/blob/15a10de03e83b0feaa98873c0cb0f42bb65a8292/cmd/root.go#L45
+	// For example, 1 is returned when the rate limit of GitHub is reached or the source code url is not found.
+	// GitHub Late Limit:
+	//   [error] datadog-method-tracing: non-200 OK status code: 403 Forbidden body: "{\n  \"documentation_url\": \"https://docs.github.com/free-pro-team@latest/rest/overview/rate-limits-for-the-rest-api#about-secondary-rate-limits\",\n  \"message\": \"You have exceeded a secondary rate limit. Please wait a few minutes before you try again. If you reach out to GitHub Support for help, please include the request ID 9C14:3F2DD6:9E2861F:9F4864B:65FE27FF.\"\n}"
+	// Source Code URL is not found:
+	//   [error] web-console: source code URL is blank
+	//
+	// However, the latter error occurs frequently.
+	// It can occur when using an internal Gem or for other reasons.
+	//
+	// For this reason, we do not use the exit code for handling,
+	// but we do send the error line to the standard error output.
 	cmd.Wait()
 
 	scanner := bufio.NewScanner(&result)
 	for scanner.Scan() {
 		line := scanner.Text()
 		// grep
-		if strings.Contains(line, "not-maintained") || strings.Contains(line, "archive") {
+		if strings.Contains(line, "[not-maintained]") || strings.Contains(line, "[archive]") {
 			//fmt.Println(line)
 			processResult(filePath, directDependent, line)
+		} else if strings.Contains(line, "[error]") {
+			fmt.Fprintf(os.Stderr, "%s diagnose includes error:%s\n", filePath, line)
 		}
 	}
 
