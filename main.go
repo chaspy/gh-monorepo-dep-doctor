@@ -44,7 +44,6 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 		line := scanner.Text()
 		// grep
 		if strings.Contains(line, "(not-maintained)") || strings.Contains(line, "(archive)") {
-			//fmt.Println(line)
 			processResult(filePath, directDependent, line)
 		} else if strings.Contains(line, "[error]") {
 			fmt.Fprintf(os.Stderr, "%s diagnose includes error:%s\n", filePath, line)
