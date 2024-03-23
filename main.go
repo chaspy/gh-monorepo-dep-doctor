@@ -72,7 +72,6 @@ func processResult(filePath, directDependent, result string) {
 			continue
 		}
 
-		// fmt.Printf("%s/%s,%s,%s,%s\n", dir, directDependent, packageName, maintenanceStatus, url)
 		// Checks for files containing directly dependent libraries and standard outputs if a match is found
 		if strings.Contains(string(directDependentContent), "'"+packageName+"'") {
 			fmt.Printf("%s/%s,%s,%s,%s\n", dir, directDependent, packageName, maintenanceStatus, url)
