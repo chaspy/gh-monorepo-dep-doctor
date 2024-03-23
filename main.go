@@ -43,7 +43,7 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	for scanner.Scan() {
 		line := scanner.Text()
 		// grep
-		if strings.Contains(line, "[not-maintained]") || strings.Contains(line, "[archive]") {
+		if strings.Contains(line, "(not-maintained)") || strings.Contains(line, "(archive)") {
 			//fmt.Println(line)
 			processResult(filePath, directDependent, line)
 		} else if strings.Contains(line, "[error]") {
