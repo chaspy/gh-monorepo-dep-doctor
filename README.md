@@ -48,4 +48,4 @@ A CSV file of the form `depenedency file, library, status, url` will be output
 
 |Name|Description|
 |---|---|
-| `MAX_CONCURRENCY` | The maximum number of concurrentcy. Defaults to 50.|
+| `MAX_CONCURRENCY` | The maximum number of concurrentcy. Defaults to 10.|

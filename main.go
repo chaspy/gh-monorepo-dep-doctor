@@ -103,7 +103,7 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 	maxConcurrencyStr := os.Getenv("MAX_CONCURRENCY")
 	maxConcurrency, err := strconv.Atoi(maxConcurrencyStr)
 	if err != nil || maxConcurrency <= 0 {
-		maxConcurrency = 50 // Default to 50 if not set or set to a non-positive value
+		maxConcurrency = 10 // Default to 10 if not set or set to a non-positive value
 	}
 
 	errs := make(chan error, len(paths))
