@@ -1,7 +1,9 @@
 package main
 
 import (
+	"io"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -31,5 +33,65 @@ ignored_lib2
 	expected := "ignored_lib1 ignored_lib2"
 	if ignoreString != expected {
 		t.Errorf("Expected ignore string to be '%s', got '%s'", expected, ignoreString)
+	}
+}
+
+// TestProcessResult tests the processResult function.
+func TestProcessResult(t *testing.T) {
+	// Setup: Create a temporary directory and a dummy direct dependent file.
+	tempDir, err := os.MkdirTemp("", "testdeps")
+	if err != nil {
+		t.Fatalf("Failed to create temporary directory: %v", err)
+	}
+	defer os.RemoveAll(tempDir) // Cleanup after the test
+
+	dummyDirectDependentFile := filepath.Join(tempDir, "Gemfile")
+	dummyContent := "gem 'dummy_package'\ngem 'another_package'"
+	if err := os.WriteFile(dummyDirectDependentFile, []byte(dummyContent), 0644); err != nil {
+		t.Fatalf("Failed to create dummy direct dependent file: %v", err)
+	}
+
+	// Define a test case with expected output.
+	testCases := []struct {
+		filePath        string
+		directDependent string
+		result          string
+		expectedOutput  string
+	}{
+		{
+			filePath:        dummyDirectDependentFile,
+			directDependent: "Gemfile",
+			result:          "[warning] dummy_package (not-maintained): https://example.com/dummy_package",
+			expectedOutput:  tempDir + "/Gemfile,dummy_package,not-maintained,https://example.com/dummy_package\n",
+		},
+		{
+			filePath:        dummyDirectDependentFile,
+			directDependent: "Gemfile",
+			result:          "[warning] another_package (archived): https://example.com/another_package",
+			expectedOutput:  tempDir + "/Gemfile,another_package,archived,https://example.com/another_package\n",
+		},
+	}
+
+	for _, testcase := range testCases {
+		// Capture the output.
+		oldStdout := os.Stdout
+		r, w, _ := os.Pipe()
+		os.Stdout = w
+
+		// Execute the function under test.
+		processResult(testcase.filePath, testcase.directDependent, testcase.result)
+
+		// Read and restore the output.
+		w.Close()
+		out, _ := io.ReadAll(r)
+		os.Stdout = oldStdout
+
+		t.Logf("actual: %s", string(out))
+		t.Logf("ideal : %s", testcase.expectedOutput)
+
+		// Verify the result.
+		if gotOutput := string(out); gotOutput != testcase.expectedOutput {
+			t.Errorf("Expected output to be '%s', got '%s'", testcase.expectedOutput, gotOutput)
+		}
 	}
 }
