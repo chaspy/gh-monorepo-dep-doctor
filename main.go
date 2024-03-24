@@ -37,7 +37,7 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	//
 	// For this reason, we do not use the exit code for handling,
 	// but we do send the error line to the standard error output.
-	cmd.Wait()
+	cmd.Wait() // nolint:errcheck
 
 	scanner := bufio.NewScanner(&result)
 	for scanner.Scan() {
@@ -85,7 +85,21 @@ func getIgnoreString() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
 	}
-	return strings.ReplaceAll(string(ignoredFiles), "\n", " "), nil
+
+	lines := strings.Split(string(ignoredFiles), "\n")
+	var validLines []string
+	for _, line := range lines {
+		if idx := strings.Index(line, "#"); idx != -1 {
+			// Ignore text after "#"
+			line = line[:idx]
+		}
+		// Ignore a blank line
+		if trimmedLine := strings.TrimSpace(line); trimmedLine != "" {
+			validLines = append(validLines, trimmedLine)
+		}
+	}
+
+	return strings.Join(validLines, " "), nil
 }
 
 func checkDependencies(directDependent, allDependent, packageManager string) error {
