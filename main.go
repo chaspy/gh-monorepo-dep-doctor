@@ -85,7 +85,21 @@ func getIgnoreString() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
 	}
-	return strings.ReplaceAll(string(ignoredFiles), "\n", " "), nil
+
+	lines := strings.Split(string(ignoredFiles), "\n")
+	var validLines []string
+	for _, line := range lines {
+		if idx := strings.Index(line, "#"); idx != -1 {
+			// "#"が見つかった場合、その前の部分のみを取得
+			line = line[:idx]
+		}
+		// 空行を無視
+		if trimmedLine := strings.TrimSpace(line); trimmedLine != "" {
+			validLines = append(validLines, trimmedLine)
+		}
+	}
+
+	return strings.Join(validLines, " "), nil
 }
 
 func checkDependencies(directDependent, allDependent, packageManager string) error {
