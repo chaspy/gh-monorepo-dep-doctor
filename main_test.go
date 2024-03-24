@@ -86,9 +86,6 @@ func TestProcessResult(t *testing.T) {
 		out, _ := io.ReadAll(r)
 		os.Stdout = oldStdout
 
-		t.Logf("actual: %s", string(out))
-		t.Logf("ideal : %s", testcase.expectedOutput)
-
 		// Verify the result.
 		if gotOutput := string(out); gotOutput != testcase.expectedOutput {
 			t.Errorf("Expected output to be '%s', got '%s'", testcase.expectedOutput, gotOutput)
