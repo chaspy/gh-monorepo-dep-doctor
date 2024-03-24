@@ -1,4 +1,4 @@
-# gh-monorepo-dep-doctor [![go](https://github.com/chaspy/gh-monorepo-dep-doctor/actions/workflows/test.yaml/badge.svg)](https://github.com/chaspy/gh-monorepo-dep-doctor/actions/workflows/test.yaml) [![Go Report Card](https://goreportcard.com/badge/github.com/chaspy/gh-monorepo-dep-doctor)](https://goreportcard.com/report/github.com/chaspy/gh-monorepo-dep-doctor)
+# gh-monorepo-dep-doctor [![go](https://github.com/chaspy/gh-monorepo-dep-doctor/actions/workflows/test.yml/badge.svg)](https://github.com/chaspy/gh-monorepo-dep-doctor/actions/workflows/test.yml) [![Go Report Card](https://goreportcard.com/badge/github.com/chaspy/gh-monorepo-dep-doctor)](https://goreportcard.com/report/github.com/chaspy/gh-monorepo-dep-doctor)
 
 gh extension to execute [dep-doctor](https://github.com/kyoshidajp/dep-doctor) in monorepo for direct dipendencies.
 
