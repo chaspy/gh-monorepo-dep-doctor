@@ -83,6 +83,9 @@ func getIgnoreString() (string, error) {
 	const IGNORE_FILE = ".gh-monorepo-dep-doctor-ignore"
 	ignoredFiles, err := os.ReadFile(IGNORE_FILE)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
 		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
 	}
 
