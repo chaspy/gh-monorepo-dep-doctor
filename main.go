@@ -37,7 +37,7 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	//
 	// For this reason, we do not use the exit code for handling,
 	// but we do send the error line to the standard error output.
-	cmd.Wait()
+	cmd.Wait() // nolint:errcheck
 
 	scanner := bufio.NewScanner(&result)
 	for scanner.Scan() {
