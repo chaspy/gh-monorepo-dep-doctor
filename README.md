@@ -53,13 +53,13 @@ To ignore a specific library, you can create a `.gh-monorepo-dep-doctor-ignore` 
 
 The format of the file is as follows.
 
-```
+```bash
+# This file allow a comment with "#"
+# Lines beginning with # and blank lines are ignored
+# Also, files beginning with "#" are ignored.
 library-name
-another-library-name
+another-library-name # You can leave a comment here
 ```
-
-> [!CAUTION]
-> `#` and other comment notations are not supported. It will be supported in the future.
 
 ## Environment Variables
 
