@@ -90,10 +90,10 @@ func getIgnoreString() (string, error) {
 	var validLines []string
 	for _, line := range lines {
 		if idx := strings.Index(line, "#"); idx != -1 {
-			// "#"が見つかった場合、その前の部分のみを取得
+			// Ignore text after "#"
 			line = line[:idx]
 		}
-		// 空行を無視
+		// Ignore a blank line
 		if trimmedLine := strings.TrimSpace(line); trimmedLine != "" {
 			validLines = append(validLines, trimmedLine)
 		}
