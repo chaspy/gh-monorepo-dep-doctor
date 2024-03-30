@@ -63,6 +63,34 @@ library-name
 another-library-name # You can leave a comment here
 ```
 
+## Notification to Slack
+
+If you want to notify the result of gh-monorepo-dep-doctor to Slack, use [Incoming Webhook](https://api.slack.com/messaging/webhooks).
+
+```bash
+gh monorepo-dep-doctor >> result.csv 
+```
+
+```bash
+SLACK_WEBHOOK_URL="please-add-webhook-url"
+
+while IFS=, read -r file_path package_name maintenance_status url
+do
+  app=$(echo $file_path | cut -d'/' -f1)
+  group_handle="group-handle-to-notify"
+  group_id="group-id-to-notify"
+  message=$(cat <<EOF
+<!subteam^${group_id}|${group_handle}> The package *${package_name}* used by ${app} is in *${maintenance_status}*. Details: ${url}
+EOF
+)
+echo $message
+curl -X POST -H 'Content-type: application/json' \
+  --data "{\"text\": \"$message\"}" \
+  $SLACK_WEBHOOK_URL
+done < result.csv
+
+```
+
 ## Environment Variables
 
 |Name|Description|
