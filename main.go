@@ -13,6 +13,15 @@ import (
 	"sync"
 )
 
+// Check if GITHUB_TOKEN environment variable is set
+func checkGitHubToken() error {
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	if githubToken == "" {
+		return fmt.Errorf("GITHUB_TOKEN environment variable is not set")
+	}
+	return nil
+}
+
 func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
 	cmd := exec.Command("dep-doctor", "diagnose", "--file", filePath, "--package", packageManager, "--ignores", ignoredFiles)
 
@@ -150,6 +159,11 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 	return nil
 }
 func run() error {
+	// dep-doctor needs GITHUB_TOKEN to check dependencies
+	if err := checkGitHubToken(); err != nil {
+		return fmt.Errorf("Failed to check GITHUB_TOKEN: %w", err)
+	}
+
 	err := checkDependencies("Gemfile", "Gemfile.lock", "bundler")
 	if err != nil {
 		return fmt.Errorf("Failed to check dependencies: %w", err)
