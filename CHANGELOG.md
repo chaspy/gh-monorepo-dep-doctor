@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.0](https://github.com/chaspy/gh-monorepo-dep-doctor/compare/v0.0.2...v0.1.0) - 2024-04-03
+- 🔧 fix(main.go): add check for GITHUB_TOKEN environment variable by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/17
+- Add example to notify to Slack by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/19
+- Fix typo by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/21
+
 ## [v0.0.2](https://github.com/chaspy/gh-monorepo-dep-doctor/compare/v0.0.1...v0.0.2) - 2024-03-24
 - Support a comment for ignore file by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/6
 - Add test by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/8
