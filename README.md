@@ -10,6 +10,8 @@ gh extension to execute [dep-doctor](https://github.com/kyoshidajp/dep-doctor) i
 
 3. I want to notify Slack of the output results of dep-doctor. For this purpose, output in a format that can be handled programmatically is preferred. ([dep-doctor is output in text.](https://github.com/kyoshidajp/dep-doctor/blob/main/cmd/report.go)) In this tool, we implemented it in csv.
 
+4. [Ruby] I wanted to check only official gems, and exclude forked gems and in-house gems from the diagnoses.
+
 ## Requirement
 
 - [dep-doctor](https://github.com/kyoshidajp/dep-doctor) v1.2.1 or later
