@@ -23,12 +23,45 @@ func checkGitHubToken() error {
 }
 
 func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
-	cmd := exec.Command("dep-doctor", "diagnose", "--file", filePath, "--package", packageManager, "--ignores", ignoredFiles)
+	tempFile, err := os.CreateTemp("", "Gemfile.lock.excluded")
+	if err != nil {
+		return fmt.Errorf("Failed to create temp file: %w", err)
+	}
+	defer os.Remove(tempFile.Name())
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("Failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	gemfile_scanner := bufio.NewScanner(file)
+	writing := false // false until GEM section starts
+	for gemfile_scanner.Scan() {
+		line := gemfile_scanner.Text()
+		if line == "GEM" {
+			writing = true // start after GEM section
+		}
+		if writing && !strings.HasSuffix(line, "!") {
+			if _, err := tempFile.WriteString(line + "\n"); err != nil {
+				return fmt.Errorf("Failed to write to temp file: %w", err)
+			}
+		}
+	}
+	if err := gemfile_scanner.Err(); err != nil {
+		return fmt.Errorf("Error reading file: %w", err)
+	}
+
+	if err := tempFile.Close(); err != nil {
+		return fmt.Errorf("Failed to close temp file: %w", err)
+	}
+
+	cmd := exec.Command("dep-doctor", "diagnose", "--file", tempFile.Name(), "--package", packageManager, "--ignores", ignoredFiles)
 
 	var result bytes.Buffer
 	cmd.Stdout = &result
 
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		return fmt.Errorf("Failed to start dep-doctor command: %w", err)
 	}
@@ -48,9 +81,9 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	// but we do send the error line to the standard error output.
 	cmd.Wait() // nolint:errcheck
 
-	scanner := bufio.NewScanner(&result)
-	for scanner.Scan() {
-		line := scanner.Text()
+	result_scanner := bufio.NewScanner(&result)
+	for result_scanner.Scan() {
+		line := result_scanner.Text()
 		// grep
 		if strings.Contains(line, "(not-maintained)") || strings.Contains(line, "(archived)") {
 			processResult(filePath, directDependent, line)
