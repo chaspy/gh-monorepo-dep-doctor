@@ -51,11 +51,10 @@ A CSV file of the form `depenedency file, library, status, url` will be output
 > [!NOTE]
 > As it is executed asynchronously, the order of output is not guaranteed
 
-## Ignore file
+## Ignore File Format
 
-To ignore a specific library, you can create a `.gh-monorepo-dep-doctor-ignore` file in the root of the repository.
-
-The format of the file is as follows.
+ignore.txt では、アプリケーションとライブラリの組み合わせで無視するパッケージを指定できます。
+フォーマットは以下の通りです：
 
 ```bash
 # This file allow a comment with "#"
@@ -70,7 +69,7 @@ another-library-name # You can leave a comment here
 If you want to notify the result of gh-monorepo-dep-doctor to Slack, use [Incoming Webhook](https://api.slack.com/messaging/webhooks).
 
 ```bash
-gh monorepo-dep-doctor >> result.csv 
+gh monorepo-dep-doctor >> result.csv
 ```
 
 ```bash
@@ -95,6 +94,6 @@ done < result.csv
 
 ## Environment Variables
 
-|Name|Description|
-|---|---|
-| `MAX_CONCURRENCY` | The maximum number of concurrentcy. Defaults to 10.|
+| Name              | Description                                         |
+| ----------------- | --------------------------------------------------- |
+| `MAX_CONCURRENCY` | The maximum number of concurrentcy. Defaults to 10. |

@@ -13,6 +13,46 @@ import (
 	"sync"
 )
 
+type IgnoreRule struct {
+	App     string
+	Library string
+}
+
+func parseIgnoreFile(content string) []IgnoreRule {
+	var rules []IgnoreRule
+	lines := strings.Split(content, "\n")
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		
+		parts := strings.Split(line, ",")
+		if len(parts) != 2 {
+			continue
+		}
+		
+		rules = append(rules, IgnoreRule{
+			App:     strings.TrimSpace(parts[0]),
+			Library: strings.TrimSpace(parts[1]),
+		})
+	}
+	
+	return rules
+}
+
+func shouldIgnore(appName, libraryName string, rules []IgnoreRule) bool {
+	for _, rule := range rules {
+		appMatch := rule.App == "*" || rule.App == appName
+		libraryMatch := rule.Library == "*" || rule.Library == libraryName
+		if appMatch && libraryMatch {
+			return true
+		}
+	}
+	return false
+}
+
 // Check if GITHUB_TOKEN environment variable is set
 func checkGitHubToken() error {
 	githubToken := os.Getenv("GITHUB_TOKEN")
