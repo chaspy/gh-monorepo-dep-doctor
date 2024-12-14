@@ -53,16 +53,26 @@ A CSV file of the form `depenedency file, library, status, url` will be output
 
 ## Ignore File Format
 
-ignore.txt では、アプリケーションとライブラリの組み合わせで無視するパッケージを指定できます。
-フォーマットは以下の通りです：
+The `ignore.txt` file allows you to specify which library to ignore for each application in your monorepo.
+The format is as follows:
 
 ```bash
-# This file allow a comment with "#"
-# Lines beginning with # and blank lines are ignored
-# Also, files beginning with "#" are ignored.
-library-name
-another-library-name # You can leave a comment here
+# Ignore specific library for specific application
+app1,library1
+app2,library2
+
+# Use wildcard (*) to ignore library for all applications
+*,library3
 ```
+
+### Format Description
+
+- Each line follows the format: `application_name,library_name`
+- Lines starting with `#` are treated as comments
+- Wildcard `*` can be used:
+  - `*,library1`: Ignore library1 for all applications
+  - `app1,*`: Ignore all libraries for app1
+- Empty lines are ignored
 
 ## Notification to Slack
 
