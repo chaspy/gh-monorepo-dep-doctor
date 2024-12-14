@@ -63,6 +63,12 @@ func checkGitHubToken() error {
 }
 
 func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
+	// Get the app name from the file path
+	appName := strings.Split(filepath.Dir(filePath), string(os.PathSeparator))[0]
+
+	// Parse ignore rules
+	ignoreRules := parseIgnoreFile(ignoredFiles)
+
 	tempFile, err := os.CreateTemp("", "Gemfile.lock.excluded")
 	if err != nil {
 		return fmt.Errorf("Failed to create temp file: %w", err)
@@ -124,8 +130,15 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	result_scanner := bufio.NewScanner(&result)
 	for result_scanner.Scan() {
 		line := result_scanner.Text()
-		// grep
 		if strings.Contains(line, "(not-maintained)") || strings.Contains(line, "(archived)") {
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				libraryName := parts[1]
+				// Check if this library should be ignored for this app
+				if shouldIgnore(appName, libraryName, ignoreRules) {
+					continue
+				}
+			}
 			processResult(filePath, directDependent, line)
 		} else if strings.Contains(line, "[error]") {
 			fmt.Fprintf(os.Stderr, "%s diagnose includes error:%s\n", filePath, line)
@@ -171,20 +184,17 @@ func getIgnoreString() (string, error) {
 		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
 	}
 
-	lines := strings.Split(string(ignoredFiles), "\n")
-	var validLines []string
-	for _, line := range lines {
-		if idx := strings.Index(line, "#"); idx != -1 {
-			// Ignore text after "#"
-			line = line[:idx]
-		}
-		// Ignore a blank line
-		if trimmedLine := strings.TrimSpace(line); trimmedLine != "" {
-			validLines = append(validLines, trimmedLine)
+	rules := parseIgnoreFile(string(ignoredFiles))
+	var validLibraries []string
+	
+	// Extract all libraries that should be ignored for the current app
+	for _, rule := range rules {
+		if rule.Library != "*" {
+			validLibraries = append(validLibraries, rule.Library)
 		}
 	}
 
-	return strings.Join(validLines, " "), nil
+	return strings.Join(validLibraries, " "), nil
 }
 
 func checkDependencies(directDependent, allDependent, packageManager string) error {
