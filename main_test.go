@@ -4,37 +4,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
-
-// TestGetIgnoreString tests the getIgnoreString function for correct behavior.
-func TestGetIgnoreString(t *testing.T) {
-	// Setup: Create a temporary ignore file.
-	const testIgnoreContent = `# This is a comment
-ignored_lib1 # This is a comment
-
-ignored_lib2
-# Another comment
-`
-	const ignoreFileName = ".gh-monorepo-dep-doctor-ignore"
-	err := os.WriteFile(ignoreFileName, []byte(testIgnoreContent), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create temporary ignore file: %v", err)
-	}
-	defer os.Remove(ignoreFileName) // Cleanup after the test
-
-	// Execute the function under test.
-	ignoreString, err := getIgnoreString()
-	if err != nil {
-		t.Fatalf("getIgnoreString returned an error: %v", err)
-	}
-
-	// Verify the result.
-	expected := "ignored_lib1 ignored_lib2"
-	if ignoreString != expected {
-		t.Errorf("Expected ignore string to be '%s', got '%s'", expected, ignoreString)
-	}
-}
 
 // TestProcessResult tests the processResult function.
 func TestProcessResult(t *testing.T) {
@@ -90,5 +62,90 @@ func TestProcessResult(t *testing.T) {
 		if gotOutput := string(out); gotOutput != testcase.expectedOutput {
 			t.Errorf("Expected output to be '%s', got '%s'", testcase.expectedOutput, gotOutput)
 		}
+	}
+}
+
+func TestParseIgnoreFile(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+		want    []IgnoreRule
+		wantErr bool
+	}{
+		{
+			name: "valid format",
+			content: `# Internal gems
+api/schema           # Internal gem detection in api
+*/itunes_receipt_decoder
+
+# not-maintained
+*/json_spec          # Used in api, test`,
+			want: []IgnoreRule{
+				{App: "api", Library: "schema"},
+				{App: "*", Library: "itunes_receipt_decoder"},
+				{App: "*", Library: "json_spec"},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "invalid format",
+			content: "invalid",
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseIgnoreFile(tt.content)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseIgnoreFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseIgnoreFile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestShouldIgnore(t *testing.T) {
+	rules := []IgnoreRule{
+		{App: "api", Library: "schema"},
+		{App: "*", Library: "json_spec"},
+	}
+
+	tests := []struct {
+		name       string
+		appName    string
+		libraryName string
+		want       bool
+	}{
+		{
+			name:       "specific app and library match",
+			appName:    "api",
+			libraryName: "schema",
+			want:       true,
+		},
+		{
+			name:       "wildcard app match",
+			appName:    "any-app",
+			libraryName: "json_spec",
+			want:       true,
+		},
+		{
+			name:       "no match",
+			appName:    "api",
+			libraryName: "other-lib",
+			want:       false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := shouldIgnore(tt.appName, tt.libraryName, rules); got != tt.want {
+				t.Errorf("shouldIgnore() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
