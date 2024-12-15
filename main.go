@@ -73,9 +73,13 @@ func checkGitHubToken() error {
 func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
 	appName := strings.Split(filepath.Dir(filePath), string(os.PathSeparator))[0]
 
-	// スペース区切りの文字列を改行区切りに変換してパース
-	ignoreContent := strings.ReplaceAll(ignoredFiles, " ", "\n")
-	ignoreRules, err := parseIgnoreFile(ignoreContent)
+	// 元のignore fileを読み込む
+	ignoreFileContent, err := os.ReadFile(".gh-monorepo-dep-doctor-ignore")
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Failed to read ignore file: %w", err)
+	}
+
+	ignoreRules, err := parseIgnoreFile(string(ignoreFileContent))
 	if err != nil {
 		return fmt.Errorf("Failed to parse ignore rules: %w", err)
 	}
@@ -200,18 +204,21 @@ func getIgnoreString() (string, error) {
 		return "", fmt.Errorf("Failed to parse ignore file: %w", err)
 	}
 
-	var validLibraries []string
+	// dep-doctorには全てのライブラリを渡す（アプリケーション固有の判定は後で行う）
+	librarySet := make(map[string]struct{})
 	for _, rule := range rules {
-		// ワイルドカードの場合はスキップ
-		if rule.Library == "*" {
-			continue
+		if rule.Library != "*" {
+			librarySet[rule.Library] = struct{}{}
 		}
-		// dep-doctorのignoresオプション用に整形
-		validLibraries = append(validLibraries, rule.Library)
 	}
 
-	// スペース区切りの文字列として返す（dep-doctorの要件）
-	return strings.Join(validLibraries, " "), nil
+	// mapからスライスに変換
+	var libraries []string
+	for lib := range librarySet {
+		libraries = append(libraries, lib)
+	}
+
+	return strings.Join(libraries, " "), nil
 }
 
 func checkDependencies(directDependent, allDependent, packageManager string) error {
