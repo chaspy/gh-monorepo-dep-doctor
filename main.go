@@ -13,6 +13,54 @@ import (
 	"sync"
 )
 
+type IgnoreRule struct {
+	App     string
+	Library string
+}
+
+func parseIgnoreFile(content string) ([]IgnoreRule, error) {
+	var rules []IgnoreRule
+	lines := strings.Split(content, "\n")
+	
+	for lineNum, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		
+		if idx := strings.Index(line, "#"); idx != -1 {
+			line = strings.TrimSpace(line[:idx])
+		}
+		
+		if line == "" {
+			continue
+		}
+		
+		parts := strings.Split(line, "/")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid format at line %d: expected 'app/library' but got '%s'", lineNum+1, line)
+		}
+		
+		rules = append(rules, IgnoreRule{
+			App:     strings.TrimSpace(parts[0]),
+			Library: strings.TrimSpace(parts[1]),
+		})
+	}
+	
+	return rules, nil
+}
+
+func shouldIgnore(appName, libraryName string, rules []IgnoreRule) bool {
+	for _, rule := range rules {
+		appMatch := rule.App == "*" || rule.App == appName
+		libraryMatch := rule.Library == "*" || rule.Library == libraryName
+		if appMatch && libraryMatch {
+			return true
+		}
+	}
+	return false
+}
+
 // Check if GITHUB_TOKEN environment variable is set
 func checkGitHubToken() error {
 	githubToken := os.Getenv("GITHUB_TOKEN")
@@ -22,7 +70,20 @@ func checkGitHubToken() error {
 	return nil
 }
 
-func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
+func checkDependencyFile(filePath, packageManager, directDependent string) error {
+	appName := strings.Split(filepath.Dir(filePath), string(os.PathSeparator))[0]
+
+	// 元のignore fileを読み込む
+	ignoreFileContent, err := os.ReadFile(".gh-monorepo-dep-doctor-ignore")
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Failed to read ignore file: %w", err)
+	}
+
+	ignoreRules, err := parseIgnoreFile(string(ignoreFileContent))
+	if err != nil {
+		return fmt.Errorf("Failed to parse ignore rules: %w", err)
+	}
+
 	tempFile, err := os.CreateTemp("", "Gemfile.lock.excluded")
 	if err != nil {
 		return fmt.Errorf("Failed to create temp file: %w", err)
@@ -56,7 +117,7 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 		return fmt.Errorf("Failed to close temp file: %w", err)
 	}
 
-	cmd := exec.Command("dep-doctor", "diagnose", "--file", tempFile.Name(), "--package", packageManager, "--ignores", ignoredFiles)
+	cmd := exec.Command("dep-doctor", "diagnose", "--file", tempFile.Name(), "--package", packageManager)
 
 	var result bytes.Buffer
 	cmd.Stdout = &result
@@ -84,8 +145,15 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	result_scanner := bufio.NewScanner(&result)
 	for result_scanner.Scan() {
 		line := result_scanner.Text()
-		// grep
 		if strings.Contains(line, "(not-maintained)") || strings.Contains(line, "(archived)") {
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				libraryName := parts[1]
+				// Check if this library should be ignored for this app
+				if shouldIgnore(appName, libraryName, ignoreRules) {
+					continue
+				}
+			}
 			processResult(filePath, directDependent, line)
 		} else if strings.Contains(line, "[error]") {
 			fmt.Fprintf(os.Stderr, "%s diagnose includes error:%s\n", filePath, line)
@@ -121,38 +189,7 @@ func processResult(filePath, directDependent, result string) {
 	}
 }
 
-func getIgnoreString() (string, error) {
-	const IGNORE_FILE = ".gh-monorepo-dep-doctor-ignore"
-	ignoredFiles, err := os.ReadFile(IGNORE_FILE)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
-		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
-	}
-
-	lines := strings.Split(string(ignoredFiles), "\n")
-	var validLines []string
-	for _, line := range lines {
-		if idx := strings.Index(line, "#"); idx != -1 {
-			// Ignore text after "#"
-			line = line[:idx]
-		}
-		// Ignore a blank line
-		if trimmedLine := strings.TrimSpace(line); trimmedLine != "" {
-			validLines = append(validLines, trimmedLine)
-		}
-	}
-
-	return strings.Join(validLines, " "), nil
-}
-
 func checkDependencies(directDependent, allDependent, packageManager string) error {
-	ignoredFilesStr, err := getIgnoreString()
-	if err != nil {
-		return fmt.Errorf("Failed to get ignore string: %w", err)
-	}
-
 	paths, err := filepath.Glob("**/" + allDependent)
 	if err != nil {
 		return fmt.Errorf("Failed to find allDependent files: %w", err)
@@ -174,7 +211,7 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 			sem <- struct{}{} // Acquire a token
 			defer wg.Done()
 			defer func() { <-sem }() // Release the token
-			if err := checkDependencyFile(path, packageManager, directDependent, ignoredFilesStr); err != nil {
+			if err := checkDependencyFile(path, packageManager, directDependent); err != nil {
 				errs <- fmt.Errorf("Failed to check dependency file: %w", err)
 			}
 		}(p)

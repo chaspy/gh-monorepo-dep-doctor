@@ -51,26 +51,35 @@ A CSV file of the form `depenedency file, library, status, url` will be output
 > [!NOTE]
 > As it is executed asynchronously, the order of output is not guaranteed
 
-## Ignore file
+## Ignore File Format
 
-To ignore a specific library, you can create a `.gh-monorepo-dep-doctor-ignore` file in the root of the repository.
-
-The format of the file is as follows.
+The `ignore.txt` file allows you to specify which library to ignore for each application in your monorepo.
+The format is as follows:
 
 ```bash
-# This file allow a comment with "#"
-# Lines beginning with # and blank lines are ignored
-# Also, files beginning with "#" are ignored.
-library-name
-another-library-name # You can leave a comment here
+# Ignore specific library for specific application
+api/schema    # Ignore schema only in api
+back-office/rails-deprecated  # Ignore rails-deprecated only in back-office
+
+# Use wildcard (*) to ignore library in all applications
+*/json_spec   # Ignore json_spec in all applications
+*/rspec       # Ignore rspec in all applications
 ```
+
+### Format Description
+
+- Each line follows the format: `application_name/library_name`
+- Lines starting with `#` are treated as comments
+- Wildcard `*` can be used:
+  - `*/library`: Ignore this library in all applications
+- Empty lines are ignored
 
 ## Notification to Slack
 
 If you want to notify the result of gh-monorepo-dep-doctor to Slack, use [Incoming Webhook](https://api.slack.com/messaging/webhooks).
 
 ```bash
-gh monorepo-dep-doctor >> result.csv 
+gh monorepo-dep-doctor >> result.csv
 ```
 
 ```bash
@@ -95,6 +104,6 @@ done < result.csv
 
 ## Environment Variables
 
-|Name|Description|
-|---|---|
-| `MAX_CONCURRENCY` | The maximum number of concurrentcy. Defaults to 10.|
+| Name              | Description                                         |
+| ----------------- | --------------------------------------------------- |
+| `MAX_CONCURRENCY` | The maximum number of concurrentcy. Defaults to 10. |
