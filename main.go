@@ -28,6 +28,14 @@ func parseIgnoreFile(content string) ([]IgnoreRule, error) {
 			continue
 		}
 		
+		if idx := strings.Index(line, "#"); idx != -1 {
+			line = strings.TrimSpace(line[:idx])
+		}
+		
+		if line == "" {
+			continue
+		}
+		
 		parts := strings.Split(line, ",")
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid format at line %d: expected 'app,library' but got '%s'", lineNum+1, line)
