@@ -58,20 +58,23 @@ The format is as follows:
 
 ```bash
 # Ignore specific library for specific application
-app1,library1
-app2,library2
+app1/library1
+app2/library2
 
 # Use wildcard (*) to ignore library for all applications
-*,library3
+*/library3
+
+# Ignore all libraries for specific application
+app3/*
 ```
 
 ### Format Description
 
-- Each line follows the format: `application_name,library_name`
+- Each line follows the format: `application_name/library_name`
 - Lines starting with `#` are treated as comments
 - Wildcard `*` can be used:
-  - `*,library1`: Ignore library1 for all applications
-  - `app1,*`: Ignore all libraries for app1
+  - `*/library1`: Ignore library1 for all applications
+  - `app1/*`: Ignore all libraries for app1
 - Empty lines are ignored
 
 ## Notification to Slack

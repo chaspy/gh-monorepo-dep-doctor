@@ -36,9 +36,9 @@ func parseIgnoreFile(content string) ([]IgnoreRule, error) {
 			continue
 		}
 		
-		parts := strings.Split(line, ",")
+		parts := strings.Split(line, "/")
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid format at line %d: expected 'app,library' but got '%s'", lineNum+1, line)
+			return nil, fmt.Errorf("invalid format at line %d: expected 'app/library' but got '%s'", lineNum+1, line)
 		}
 		
 		rules = append(rules, IgnoreRule{
