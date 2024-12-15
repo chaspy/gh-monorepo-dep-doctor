@@ -1,5 +1,8 @@
 # Changelog
 
+## [v1.0.1](https://github.com/chaspy/gh-monorepo-dep-doctor/compare/v1.0.0...v1.0.1) - 2024-12-15
+- ci: Update actions/checkout and add CGO_ENABLED variable by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/28
+
 ## [v1.0.0](https://github.com/chaspy/gh-monorepo-dep-doctor/compare/v0.1.0...v1.0.0) - 2024-12-15
 - Exclude proprietary Gems in Gemfile.lock by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/23
 - feat: Fix ignore rule formatting by @chaspy in https://github.com/chaspy/gh-monorepo-dep-doctor/pull/27
