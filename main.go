@@ -18,11 +18,11 @@ type IgnoreRule struct {
 	Library string
 }
 
-func parseIgnoreFile(content string) []IgnoreRule {
+func parseIgnoreFile(content string) ([]IgnoreRule, error) {
 	var rules []IgnoreRule
 	lines := strings.Split(content, "\n")
 	
-	for _, line := range lines {
+	for lineNum, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
@@ -30,7 +30,7 @@ func parseIgnoreFile(content string) []IgnoreRule {
 		
 		parts := strings.Split(line, ",")
 		if len(parts) != 2 {
-			continue
+			return nil, fmt.Errorf("invalid format at line %d: expected 'app,library' but got '%s'", lineNum+1, line)
 		}
 		
 		rules = append(rules, IgnoreRule{
@@ -39,7 +39,7 @@ func parseIgnoreFile(content string) []IgnoreRule {
 		})
 	}
 	
-	return rules
+	return rules, nil
 }
 
 func shouldIgnore(appName, libraryName string, rules []IgnoreRule) bool {
@@ -66,8 +66,10 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 	// Get the app name from the file path
 	appName := strings.Split(filepath.Dir(filePath), string(os.PathSeparator))[0]
 
-	// Parse ignore rules
-	ignoreRules := parseIgnoreFile(ignoredFiles)
+	ignoreRules, err := parseIgnoreFile(ignoredFiles)
+	if err != nil {
+		return fmt.Errorf("Failed to parse ignore rules: %w", err)
+	}
 
 	tempFile, err := os.CreateTemp("", "Gemfile.lock.excluded")
 	if err != nil {
@@ -184,10 +186,12 @@ func getIgnoreString() (string, error) {
 		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
 	}
 
-	rules := parseIgnoreFile(string(ignoredFiles))
+	rules, err := parseIgnoreFile(string(ignoredFiles))
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse ignore file: %w", err)
+	}
+
 	var validLibraries []string
-	
-	// Extract all libraries that should be ignored for the current app
 	for _, rule := range rules {
 		if rule.Library != "*" {
 			validLibraries = append(validLibraries, rule.Library)
