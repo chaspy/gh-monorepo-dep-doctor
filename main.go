@@ -117,7 +117,7 @@ func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles
 		return fmt.Errorf("Failed to close temp file: %w", err)
 	}
 
-	cmd := exec.Command("dep-doctor", "diagnose", "--file", tempFile.Name(), "--package", packageManager, "--ignores", ignoredFiles)
+	cmd := exec.Command("dep-doctor", "diagnose", "--file", tempFile.Name(), "--package", packageManager)
 
 	var result bytes.Buffer
 	cmd.Stdout = &result
@@ -189,44 +189,7 @@ func processResult(filePath, directDependent, result string) {
 	}
 }
 
-func getIgnoreString() (string, error) {
-	const IGNORE_FILE = ".gh-monorepo-dep-doctor-ignore"
-	ignoredFiles, err := os.ReadFile(IGNORE_FILE)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
-		return "", fmt.Errorf("Failed to open .gh-monorepo-dep-doctor-ignore file: %w", err)
-	}
-
-	rules, err := parseIgnoreFile(string(ignoredFiles))
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse ignore file: %w", err)
-	}
-
-	// dep-doctorには全てのライブラリを渡す（アプリケーション固有の判定は後で行う）
-	librarySet := make(map[string]struct{})
-	for _, rule := range rules {
-		if rule.Library != "*" {
-			librarySet[rule.Library] = struct{}{}
-		}
-	}
-
-	// mapからスライスに変換
-	var libraries []string
-	for lib := range librarySet {
-		libraries = append(libraries, lib)
-	}
-
-	return strings.Join(libraries, " "), nil
-}
-
 func checkDependencies(directDependent, allDependent, packageManager string) error {
-	ignoredFilesStr, err := getIgnoreString()
-	if err != nil {
-		return fmt.Errorf("Failed to get ignore string: %w", err)
-	}
-
 	paths, err := filepath.Glob("**/" + allDependent)
 	if err != nil {
 		return fmt.Errorf("Failed to find allDependent files: %w", err)
@@ -248,7 +211,7 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 			sem <- struct{}{} // Acquire a token
 			defer wg.Done()
 			defer func() { <-sem }() // Release the token
-			if err := checkDependencyFile(path, packageManager, directDependent, ignoredFilesStr); err != nil {
+			if err := checkDependencyFile(path, packageManager, directDependent, ""); err != nil {
 				errs <- fmt.Errorf("Failed to check dependency file: %w", err)
 			}
 		}(p)

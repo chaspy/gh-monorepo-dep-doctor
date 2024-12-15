@@ -58,14 +58,12 @@ The format is as follows:
 
 ```bash
 # Ignore specific library for specific application
-app1/library1
-app2/library2
+api/schema    # Ignore schema only in api
+back-office/rails-deprecated  # Ignore rails-deprecated only in back-office
 
-# Use wildcard (*) to ignore library for all applications
-*/library3
-
-# Ignore all libraries for specific application
-app3/*
+# Use wildcard (*) to ignore library in all applications
+*/json_spec   # Ignore json_spec in all applications
+*/rspec       # Ignore rspec in all applications
 ```
 
 ### Format Description
@@ -73,8 +71,7 @@ app3/*
 - Each line follows the format: `application_name/library_name`
 - Lines starting with `#` are treated as comments
 - Wildcard `*` can be used:
-  - `*/library1`: Ignore library1 for all applications
-  - `app1/*`: Ignore all libraries for app1
+  - `*/library`: Ignore this library in all applications
 - Empty lines are ignored
 
 ## Notification to Slack
