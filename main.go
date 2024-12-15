@@ -71,10 +71,11 @@ func checkGitHubToken() error {
 }
 
 func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
-	// Get the app name from the file path
 	appName := strings.Split(filepath.Dir(filePath), string(os.PathSeparator))[0]
 
-	ignoreRules, err := parseIgnoreFile(ignoredFiles)
+	// スペース区切りの文字列を改行区切りに変換してパース
+	ignoreContent := strings.ReplaceAll(ignoredFiles, " ", "\n")
+	ignoreRules, err := parseIgnoreFile(ignoreContent)
 	if err != nil {
 		return fmt.Errorf("Failed to parse ignore rules: %w", err)
 	}
@@ -201,11 +202,15 @@ func getIgnoreString() (string, error) {
 
 	var validLibraries []string
 	for _, rule := range rules {
-		if rule.Library != "*" {
-			validLibraries = append(validLibraries, rule.Library)
+		// ワイルドカードの場合はスキップ
+		if rule.Library == "*" {
+			continue
 		}
+		// dep-doctorのignoresオプション用に整形
+		validLibraries = append(validLibraries, rule.Library)
 	}
 
+	// スペース区切りの文字列として返す（dep-doctorの要件）
 	return strings.Join(validLibraries, " "), nil
 }
 
