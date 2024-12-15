@@ -70,7 +70,7 @@ func checkGitHubToken() error {
 	return nil
 }
 
-func checkDependencyFile(filePath, packageManager, directDependent, ignoredFiles string) error {
+func checkDependencyFile(filePath, packageManager, directDependent string) error {
 	appName := strings.Split(filepath.Dir(filePath), string(os.PathSeparator))[0]
 
 	// 元のignore fileを読み込む
@@ -211,7 +211,7 @@ func checkDependencies(directDependent, allDependent, packageManager string) err
 			sem <- struct{}{} // Acquire a token
 			defer wg.Done()
 			defer func() { <-sem }() // Release the token
-			if err := checkDependencyFile(path, packageManager, directDependent, ""); err != nil {
+			if err := checkDependencyFile(path, packageManager, directDependent); err != nil {
 				errs <- fmt.Errorf("Failed to check dependency file: %w", err)
 			}
 		}(p)
